@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Number Case — 10 Tries</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F1E8;
+    --paper-raised:#FFFFFF;
+    --ink:#1B2230;
+    --ink-dim:#6B7180;
+    --line:#D8D2C2;
+    --navy:#22304A;
+    --red:#B23A3A;
+    --red-dim:rgba(178,58,58,0.1);
+    --serif:'Source Serif 4', serif;
+    --mono:'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 28px);
+    color:var(--ink);
+    font-family:var(--serif);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .case{
+    width:100%;
+    max-width:560px;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:4px;
+    box-shadow:0 24px 50px -25px rgba(27,34,48,0.35);
+    position:relative;
+  }
+
+  /* corner staple/pin detail */
+  .case::before{
+    content:"";
+    position:absolute;
+    top:14px; left:14px;
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--ink-dim);
+    opacity:0.3;
+  }
+
+  /* ---------- HEADER ---------- */
+  .case__header{
+    padding:28px 32px 18px;
+    border-bottom:2px solid var(--ink);
+  }
+
+  .case__eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 8px;
+  }
+
+  .case__title{
+    font-size:28px;
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+
+  .case__brief{
+    font-size:14.5px;
+    color:var(--ink-dim);
+    margin:0;
+    line-height:1.55;
+  }
+
+  .case__brief strong{ color:var(--ink); font-weight:700; }
+
+  /* ---------- STATUS BAR ---------- */
+  .status-bar{
+    display:flex;
+    border-bottom:1px solid var(--line);
+  }
+
+  .status-cell{
+    flex:1;
+    padding:16px 32px;
+    text-align:center;
+    border-right:1px solid var(--line);
+  }
+  .status-cell:last-child{ border-right:none; }
+
+  .status-cell__label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:0 0 4px;
+  }
+
+  .status-cell__value{
+    font-family:var(--mono);
+    font-size:26px;
+    font-weight:700;
+    color:var(--navy);
+    margin:0;
+    line-height:1;
+  }
+
+  .status-cell__value.is-low{ color:var(--red); }
+
+  /* ---------- FORM ---------- */
+  .case__form{
+    padding:26px 32px 6px;
+    display:flex;
+    gap:10px;
+  }
+
+  .case__form input{
+    flex:1;
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    border-radius:3px;
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:17px;
+    padding:12px 14px;
+    outline:none;
+    min-width:0;
+    transition:box-shadow 0.15s ease;
+  }
+
+  .case__form input::placeholder{ color:var(--ink-dim); opacity:0.7; }
+
+  .case__form input:focus{
+    box-shadow:0 0 0 3px var(--red-dim);
+    border-color:var(--red);
+  }
+
+  .case__form input:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+
+  .btn{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--navy);
+    color:var(--paper);
+    border:1.5px solid var(--navy);
+    border-radius:3px;
+    padding:12px 22px;
+    cursor:pointer;
+    transition:transform 0.1s ease, background 0.15s ease;
+  }
+
+  .btn:hover{ background:#2C3D5E; }
+  .btn:active{ transform:scale(0.97); }
+  .btn:focus-visible{ outline:2px solid var(--red); outline-offset:2px; }
+
+  /* ---------- VERDICT ---------- */
+  .lowOrHi{
+    min-height:40px;
+    padding:6px 32px 0;
+  }
+
+  .lowOrHi h2{
+    font-size:17px;
+    font-weight:700;
+    margin:0;
+    padding:10px 14px;
+    border-radius:3px;
+    display:inline-block;
+  }
+
+  /* JS adds no classes here, so we color by content using attribute-free generic styling */
+  .lowOrHi h2{
+    background:var(--paper);
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+
+  /* ---------- LOG ---------- */
+  .log-section{
+    padding:18px 32px 4px;
+    border-top:1px solid var(--line);
+    margin-top:14px;
+  }
+
+  .log-section__label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:0 0 10px;
+  }
+
+  .guesses{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--navy);
+    line-height:1.8;
+    min-height:24px;
+    word-break:break-word;
+  }
+
+  .guesses:empty::before{
+    content:"No entries logged yet.";
+    color:var(--ink-dim);
+    font-style:italic;
+    font-family:var(--serif);
+  }
+
+  /* ---------- RESULT / NEW GAME BUTTON ---------- */
+  .resultParas{
+    padding:8px 32px 28px;
+  }
+
+  .resultParas .button{
+    margin-top:8px;
+    text-align:center;
+  }
+
+  .resultParas .button h2{
+    margin:0;
+    font-family:var(--mono);
+    font-size:14px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--red);
+    color:var(--paper);
+    border-radius:3px;
+    padding:14px 20px;
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.1s ease;
+  }
+
+  .resultParas .button h2:hover{ background:#9C3232; }
+  .resultParas .button h2:active{ transform:scale(0.98); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+
+  @media (max-width:480px){
+    .case__header, .case__form, .lowOrHi, .log-section, .resultParas{
+      padding-left:20px;
+      padding-right:20px;
+    }
+    .status-cell{ padding:14px 12px; }
+    .case__title{ font-size:23px; }
+    .status-cell__value{ font-size:21px; }
+  }
+</style>
+</head>
+<body>
+
+<main class="case">
+  <header class="case__header">
+    <p class="case__eyebrow">Case File · Active</p>
+    <h1 class="case__title">The Number Case</h1>
+    <p class="case__brief">
+      A number between <strong>1 and 100</strong> is on file. You have
+      <strong>10 attempts</strong> to identify it. Each entry is logged below —
+      use the verdict to narrow your next move.
+    </p>
+  </header>
+
+  <div class="status-bar">
+    <div class="status-cell">
+      <p class="status-cell__label">Attempts left</p>
+      <p class="status-cell__value lastResult">10</p>
+    </div>
+    <div class="status-cell">
+      <p class="status-cell__label">Entries logged</p>
+      <p class="status-cell__value" id="entryCount">0</p>
+    </div>
+  </div>
+
+  <form class="case__form">
+    <input
+      type="number"
+      id="guessField"
+      inputmode="numeric"
+      placeholder="Enter a number 1–100"
+      min="1" max="100"
+      aria-label="Your guess"
+    />
+    <button type="submit" id="subt" class="btn">Submit</button>
+  </form>
+
+  <div class="lowOrHi"></div>
+
+  <section class="log-section">
+    <p class="log-section__label">Guess log</p>
+    <p class="guesses"></p>
+  </section>
+
+  <div class="resultParas"></div>
+</main>
+<script src="javascript.js"></script>
+</body>
+</html>
